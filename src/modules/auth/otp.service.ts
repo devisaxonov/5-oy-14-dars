@@ -35,6 +35,7 @@ export class OptService{
     async verifyOtpSendedUser(key:string,code:string) {
         const otp = await this.redisService.getOtp(key);
         if (!otp || otp !== code) throw new BadRequestException("Invalid kod");
+        await this.redisService.delKey(key)
     }
     
 }

@@ -3,7 +3,7 @@ import Redis from "ioredis";
 @Injectable()
 export class RedisService{
     private redis: Redis;
-    private duration:number = 180;
+    private duration:number = 60;
     constructor() {
         this.redis = new Redis({
             port: +(process.env.REDIS_PORT as string),
@@ -15,6 +15,7 @@ export class RedisService{
         this.redis.on('error', () => {
             console.log('Redis connecting error');
             this.redis.quit();
+            process.exit(1)
         })
     }
 
@@ -24,9 +25,9 @@ export class RedisService{
         return res
     }
 
-    async getOtp(key: string) {
-        const otp = await this.redis.get(key);
-        return otp
+    async getKey(key: string):Promise<string> {
+        return await this.redis.get(key) as string;
+        
     }
 
     async getTTL(key:string) {
@@ -37,5 +38,11 @@ export class RedisService{
     async delKey(key: string) {
         await this.redis.del(key)
         return;
+    }
+
+    async setSessionTokenUser(phone_number: string,token:string) {
+        const key = `sessionToken:${phone_number}`
+        const res = await this.redis.setex(key, 300, token);
+        return res
     }
 }
